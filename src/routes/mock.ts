@@ -4,10 +4,12 @@ import { QueryInclude } from '../models';
 import Tree from './utils/tree'
 import urlUtils from './utils/url'
 import * as querystring from 'querystring'
+import { Sequelize } from 'sequelize-typescript';
 
 const attributes: any = { exclude: [] }
 const pt = require('node-print').pt
 const beautify = require('js-beautify').js_beautify
+const Op = Sequelize.Op
 
 // 检测是否存在重复接口，会在返回的插件 JS 中提示。同时也会在编辑器中提示。
 const parseDuplicatedInterfaces = (repository: Repository) => {
@@ -121,9 +123,6 @@ router.all('/app/mock/:repositoryId(\\d+)/:url(.+)', async (ctx) => {
     REG_URL_METHOD.lastIndex = -1
     url = url.replace(REG_URL_METHOD, '')
   }
-  // if(process.env.NODE_ENV === 'development') {
-  //   console.log({repositoryId, url, method})
-  // }
 
   let urlWithoutPrefixSlash = /(\/)?(.*)/.exec(url)[2]
   let urlWithoutSearch
@@ -133,6 +132,7 @@ router.all('/app/mock/:repositoryId(\\d+)/:url(.+)', async (ctx) => {
   } catch (e) {
     urlWithoutSearch = url
   }
+  urlWithoutSearch
   // DONE 2.3 腐烂的 KISSY
   // KISSY 1.3.2 会把路径中的 // 替换为 /。在浏览器端拦截跨域请求时，需要 encodeURIComponent(url) 以防止 http:// 被替换为 http:/。但是同时也会把参数一起编码，导致 route 的 url 部分包含了参数。
   // 所以这里重新解析一遍！！！
@@ -146,8 +146,10 @@ router.all('/app/mock/:repositoryId(\\d+)/:url(.+)', async (ctx) => {
     where: {
       repositoryId: [repositoryId, ...collaborators.map(item => item.id)],
       method,
-      url: [urlWithoutPrefixSlash, '/' + urlWithoutPrefixSlash, urlWithoutSearch],
-    },
+      url: {
+        [Op.like]: `%${urlWithoutPrefixSlash}%`,
+      }
+    }
   })
 
   if (!itf) {

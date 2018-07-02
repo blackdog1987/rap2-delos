@@ -19,6 +19,7 @@ export default class UrlUtils {
     if (url.indexOf('?') > -1) {
       url = url.substring(0, url.indexOf('?'))
     }
+    if (url[0] !== '/') url = '/' + url
     return url
   }
 
