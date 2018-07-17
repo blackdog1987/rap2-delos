@@ -109,6 +109,12 @@ router.get('/repository/owned', async (ctx) => {
   }
 
   let auth: User = await User.findById(ctx.query.user || ctx.session.id)
+  if (!auth) {
+    ctx.body = {
+      isOk: false,
+      errMsg: '登陆过期了，请重新登陆。',
+    }
+  }
   // let total = await auth.countOwnedRepositories({ where })
   // let pagination = new Pagination(total, ctx.query.cursor || 1, ctx.query.limit || 100)
   let repositories = await auth.$get('ownedRepositories', {
@@ -547,6 +553,43 @@ router.post('/interface/update', async (ctx, next) => {
     moduleId: itf.moduleId,
     interfaceId: itf.id,
   })
+})
+
+router.post('/interface/move', async (ctx) => {
+  const OP_MOVE = 1
+  const OP_COPY = 2
+  const { modId, itfId, op } = ctx.request.body
+  const itf = await Interface.findById(itfId)
+  if (op === OP_MOVE) {
+    itf.moduleId = modId
+    await itf.save()
+  } else if (op === OP_COPY) {
+    const { id, name, ...otherProps } = itf.dataValues
+    const newItf = await Interface.create({
+      name: name + '副本',
+      ...otherProps,
+      moduleId: modId,
+    })
+
+    const properties = await Property.findAll({
+      where: {
+        interfaceId: itf.id,
+      }
+    })
+    for (const property of properties) {
+      const { id, ...props } = property.dataValues
+      await Property.create({
+        ...props,
+        interfaceId: newItf.id,
+        moduleId: modId,
+      })
+    }
+  }
+  ctx.body = {
+    data: {
+      isOk: true,
+    }
+  }
 })
 
 router.get('/interface/remove', async (ctx, next) => {
