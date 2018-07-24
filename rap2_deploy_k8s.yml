@@ -1,0 +1,46 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: rap2
+  namespace: apps
+spec:
+  replicas: 2
+  selector:
+    matchLables:
+      app: rap2
+  template:
+    metadata:
+      lables:
+        app: rap2
+    spec:
+      containers:
+      - images: blackdog1987/rap2-delos:2.6.67cc4db
+        imagePullPolicy: IfNotPresent
+        name: rap2
+        resources:
+          limits:
+            cpu: "1"
+            memory: 2Gi
+
+        workingDir: /app
+        command: [ "node", "dispatch.js" ]
+        livenessProbe:
+          tcpSocket:
+            port: 8080
+        ports:
+        - containerPort: 8080
+        env:
+        - name: MYSQL_URL
+          value: "10.30.10.10"
+        - name: MYSQL_PORT
+          value: "3306"
+        - name: MYSQL_USERNAME
+          value: "rap2"
+        - name: MYSQL_PASSWD
+          value: ""
+        - name: MYSQL_SCHEMA
+          value: "rap2"
+        - name: REDIS_URL
+          value: "redis"
+        - name: REDIS_PORT
+          value: "6379"
