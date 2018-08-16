@@ -24,6 +24,22 @@ let config: IConfigOptions = {
     logging: false,
   },
   redis: {
+    // isRedisCluster: true,
+    // nodes: [{
+    //   port: 6379,
+    //   host: '*.*.*',
+    // },
+    // {
+    //   port: 6380,
+    //   host: '*.*.*',
+    // },
+    // {
+    //   port: 6381,
+    //   host: '*.*.*',
+    // }],
+    // redisOptions: {
+    //   password: '*',
+    // }
   }
 }
 

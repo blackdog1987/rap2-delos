@@ -1,12 +1,13 @@
 import * as redis from 'redis'
 import config from '../config'
+import * as ioredis from 'ioredis'
 
 export enum CACHE_KEY {
   REPOSITORY_GET = 'REPOSITORY_GET',
 }
 
 export default class RedisService {
-  private static client: redis.RedisClient = redis.createClient(config.redis)
+  private static client: redis.RedisClient = config.redis && config.redis.isRedisCluster ? new ioredis.Cluster(config.redis.nodes, {redisOptions: config.redis.redisOptions}) : redis.createClient(config.redis)
 
   private static getCacheKey(key: CACHE_KEY, entityId?: number): string {
     return `${key}:${entityId || ''}`
