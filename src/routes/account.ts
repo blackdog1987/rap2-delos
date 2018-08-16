@@ -67,25 +67,20 @@ router.get('/account/info', async (ctx) => {
 })
 
 router.post('/account/login', async (ctx) => {
-  let { email, password, captcha } = ctx.request.body
+  let { email, password } = ctx.request.body
   let result, errMsg
-  if (process.env.TEST_MODE !== 'true' &&
-    (!captcha || !ctx.session.captcha || captcha.trim().toLowerCase() !== ctx.session.captcha.toLowerCase())) {
-    errMsg = '错误的验证码'
+  result = await User.findOne({
+    attributes: QueryInclude.User.attributes,
+    where: { email, password: md5(md5(password)) },
+  })
+  if (result) {
+    ctx.session.id = result.id
+    ctx.session.fullname = result.fullname
+    ctx.session.email = result.email
+    let app: any = ctx.app
+    app.counter.users[result.fullname] = true
   } else {
-    result = await User.findOne({
-      attributes: QueryInclude.User.attributes,
-      where: { email, password: md5(md5(password)) },
-    })
-    if (result) {
-      ctx.session.id = result.id
-      ctx.session.fullname = result.fullname
-      ctx.session.email = result.email
-      let app: any = ctx.app
-      app.counter.users[result.fullname] = true
-    } else {
-      errMsg = '账号或密码错误'
-    }
+    errMsg = '账号或密码错误'
   }
   ctx.body = {
     data: result ? result : { errMsg },
