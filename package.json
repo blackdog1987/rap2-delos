@@ -10,7 +10,7 @@
     "build": "rimraf -rf dist/ && tsc",
     "test": "cross-env NODE_ENV=development cross-env TEST_MODE=true nyc mocha --exit",
     "check": "echo \"Checking...\" && tsc && npm run tslint",
-    "dev": "cross-env NODE_ENV=development nodemon --watch scripts --watch dist dist/scripts/dev.js",
+    "dev": "cross-env MYSQL_URL=localhost MYSQL_PORT=3306 MYSQL_USERNAME=root MYSQL_PASSWD= MYSQL_SCHEMA=rap2 REDIS_URL=localhost REDIS_PORT=6379 NODE_ENV=development nodemon --watch scripts --watch dist dist/scripts/dev.js",
     "create-db": "cross-env NODE_ENV=development node dist/scripts/init",
     "tslint": "tslint -c tslint.json -p tsconfig.json",
     "start": "cross-env NODE_ENV=production pm2 start dist/dispatch.js --name=rap-server-delos",

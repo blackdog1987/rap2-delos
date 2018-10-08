@@ -6,10 +6,10 @@ services:
   delos:
     container_name: rap2-delos
     # build from ./Dockerfile
-#    build: .
+    build: .
     # build from images
     # https://hub.docker.com/r/blackdog1987/rap2-delos/
-    image: blackdog1987/rap2-delos:2.6.67cc4db
+#    image: blackdog1987/rap2-delos:2.6.494e656
     environment:
       # if you have your own mysql, config it here, and disable the 'mysql' config blow
       - MYSQL_URL=rap2-mysql # links will maintain /etc/hosts, just use 'container_name'
@@ -28,11 +28,11 @@ services:
     privileged: true
     ###### 'sleep 30 && node scripts/init' will drop the tables
     ###### RUN ONLY ONCE THEN REMOVE 'sleep 30 && node scripts/init'
-#    command: /bin/sh -c 'sleep 30; node scripts/init; node dispatch.js'
+    command: /bin/sh -c 'sleep 30; node scripts/init; node dispatch.js'
     # init the databases
-#    command: sleep 30 && node scripts/init && node dispatch.js
+    #command: sleep 30 && node scripts/init && node dispatch.js
     # without init
-    command: node dispatch.js
+#    command: node dispatch.js
     links:
       - redis
       - mysql
@@ -51,8 +51,8 @@ services:
     container_name: rap2-mysql
     image: mysql:5.7.22
     # expose 33306 to client (navicat)
-    #ports:
-    #   - 33306:3306
+    ports:
+       - 33306:3306
     volumes:
       # change './docker/mysql/volume' to your own path
       # WARNING: without this line, your data will be lost.
