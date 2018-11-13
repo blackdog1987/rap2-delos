@@ -41,17 +41,20 @@ router.get('/repository/count', async (ctx) => {
 
 router.get('/repository/list', async (ctx) => {
   let where = {}
-  let { name, user, organization } = ctx.query
+  let { name, user, organization, debugOn } = ctx.query
 
   if (+organization > 0) {
-    const access = await AccessUtils.canUserAccess(ACCESS_TYPE.ORGANIZATION, ctx.session.id, organization)
+    // 开启debug，允许无状态打开接口列表
+    if(!debugOn){
+        const access = await AccessUtils.canUserAccess(ACCESS_TYPE.ORGANIZATION, ctx.session.id, organization)
 
-    if (access === false) {
-      ctx.body = {
-        isOk: false,
-        errMsg: Consts.COMMON_MSGS.ACCESS_DENY
-      }
-      return
+        if (access === false) {
+            ctx.body = {
+                isOk: false,
+                errMsg: Consts.COMMON_MSGS.ACCESS_DENY
+            }
+            return
+        }
     }
   }
 
@@ -174,21 +177,28 @@ router.get('/repository/joined', async (ctx) => {
 })
 
 router.get('/repository/get', async (ctx) => {
-  const access = await AccessUtils.canUserAccess(ACCESS_TYPE.REPOSITORY, ctx.session.id, ctx.query.id)
-  if (access === false) {
-    ctx.body = {
-      isOk: false,
-      errMsg: Consts.COMMON_MSGS.ACCESS_DENY
-    }
-    return
+  console.time('/repository/get' + ctx.query.id)
+  // 允许无状态访问仓库
+  if(!ctx.query.debugOn){
+      const access = await AccessUtils.canUserAccess(ACCESS_TYPE.REPOSITORY, ctx.session.id, ctx.query.id)
+      if (access === false) {
+          ctx.body = {
+              isOk: false,
+              errMsg: Consts.COMMON_MSGS.ACCESS_DENY
+          }
+          return
+      }
   }
   const tryCache = await RedisService.getCache(CACHE_KEY.REPOSITORY_GET, ctx.query.id)
   let repository: Repository
   if (tryCache) {
     console.log(`from cache`)
+    console.time("JSON.parse(tryCache) " + ctx.query.id)
     repository = JSON.parse(tryCache)
+    console.timeEnd("JSON.parse(tryCache) " + ctx.query.id)
   } else {
     console.log(`from db`)
+    console.time("from db" + ctx.query.id)
     repository = await Repository.findById(ctx.query.id, {
       attributes: { exclude: [] },
       include: [
@@ -205,11 +215,13 @@ router.get('/repository/get', async (ctx) => {
         [{ model: Module, as: 'modules' }, { model: Interface, as: 'interfaces' }, 'priority', 'asc']
       ]
     })
+    console.timeEnd("from db" + ctx.query.id)
     await RedisService.setCache(CACHE_KEY.REPOSITORY_GET, JSON.stringify(repository), ctx.query.id)
   }
   ctx.body = {
     data: repository,
   }
+  console.timeEnd('/repository/get' + ctx.query.id)
 })
 
 router.post('/repository/create', async (ctx, next) => {
