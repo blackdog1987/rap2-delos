@@ -23,5 +23,6 @@ declare interface IConfigOptions {
   db: ISequelizeConfig,
   redis: RedisAndClusterOptions
   mail: SMTPTransport
-  mailSender: string
+  mailSender: string,
+  debugOn: boolean,
 }

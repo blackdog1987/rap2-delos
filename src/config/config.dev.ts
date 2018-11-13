@@ -34,7 +34,8 @@ let config: IConfigOptions = {
     }
   },
   mailSender: 'rap2_notify@outlook.com',
-
+  // 开启debug模式
+  debugOn: true,
 
 }
 

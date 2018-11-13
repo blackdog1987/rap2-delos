@@ -34,6 +34,8 @@ let config: IConfigOptions = {
     }
   },
   mailSender: '',
+  // 开启debug模式
+  debugOn: false,
 }
 
 export default config

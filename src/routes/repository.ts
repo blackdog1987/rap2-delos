@@ -9,6 +9,7 @@ import { AccessUtils, ACCESS_TYPE } from './utils/access'
 import * as Consts from './utils/const'
 import RedisService, { CACHE_KEY } from '../service/redis'
 import MigrateService from '../service/migrate';
+import config from '../config';
 
 const { initRepository, initModule } = require('./utils/helper')
 const Op = Sequelize.Op
@@ -45,7 +46,7 @@ router.get('/repository/list', async (ctx) => {
 
   if (+organization > 0) {
     // 开启debug，允许无状态打开接口列表
-    if(!debugOn){
+    if(!config.debugOn || !debugOn){
         const access = await AccessUtils.canUserAccess(ACCESS_TYPE.ORGANIZATION, ctx.session.id, organization)
 
         if (access === false) {
@@ -179,7 +180,7 @@ router.get('/repository/joined', async (ctx) => {
 router.get('/repository/get', async (ctx) => {
   console.time('/repository/get' + ctx.query.id)
   // 允许无状态访问仓库
-  if(!ctx.query.debugOn){
+  if(!config.debugOn || !ctx.query.debugOn){
       const access = await AccessUtils.canUserAccess(ACCESS_TYPE.REPOSITORY, ctx.session.id, ctx.query.id)
       if (access === false) {
           ctx.body = {
